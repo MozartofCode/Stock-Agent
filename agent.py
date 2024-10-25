@@ -13,16 +13,18 @@ import openai
 from langchain_core.tools import Tool
 from langchain.prompts import PromptTemplate
 from langchain_community.tools import Tool
-
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
-
+from langchain.tools.google_search.tool import GoogleSearchResults
 from tools import get_news
 
 #from langsmith import LangSmith
 
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
+google_api_key = "YGOOGLE_API_KEY"
+search_engine_id = "SEARCH_ENGINE_ID"
+
 
 # Create the agent
 memory = MemorySaver()
@@ -37,6 +39,15 @@ prompt_template = PromptTemplate(
 
 
 # Get latest news with an API call & Wikipedia Integration (Built in tool)
+# Google Search API
+# API request API (for yahoo api)
+
+# Initialize the Google Search tool with API credentials
+google_search_tool = GoogleSearchResults(
+    api_key=google_api_key,
+    search_engine_id=search_engine_id
+)
+
 
 api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=100)
 wikipedia_tool = WikipediaQueryRun(api_wrapper=api_wrapper)
@@ -48,7 +59,9 @@ tools = [
         description="Gets the latest news from WSJ"
     ),
     
-    wikipedia_tool
+    wikipedia_tool,
+
+    google_search_tool
 ]
 
 agent_executor = create_react_agent(model, tools, checkpointer=memory)
