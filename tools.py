@@ -1,5 +1,5 @@
 
 
-def get_news():
-    return "The latest news is that the sky is blue"
+def get_news(prompt):
+    return "The latest news is Apple is releasing a new iPhone"
 
