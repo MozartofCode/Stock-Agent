@@ -16,7 +16,8 @@ from langchain_community.tools import Tool
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
 from langchain.tools.google_search.tool import GoogleSearchResults
-from tools import get_news
+import requests
+
 
 #from langsmith import LangSmith
 
@@ -24,6 +25,18 @@ load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 google_api_key = "YGOOGLE_API_KEY"
 search_engine_id = "SEARCH_ENGINE_ID"
+api_key = "YOUR_NEWSAPI_KEY"
+url = f"https://newsapi.org/v2/everything?sources=techcrunch&apiKey={api_key}"
+
+
+
+def get_news_WSJ(prompt):
+    return "The latest news is Apple is releasing a new iPhone"
+
+
+def get_news_TechCrunch(prompt):
+    return "The latest news is Apple is releasing a new iPhone"
+
 
 
 # Create the agent
@@ -54,9 +67,9 @@ wikipedia_tool = WikipediaQueryRun(api_wrapper=api_wrapper)
 
 tools = [
     Tool(
-        func=get_news,
+        func=get_news_WSJ,
         name="Latest_News",
-        description="Gets the latest news from WSJ"
+        description="Gets the latest news of the day from WSJ, these are any news"
     ),
     
     wikipedia_tool,
