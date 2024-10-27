@@ -18,10 +18,7 @@ from langchain_community.utilities import WikipediaAPIWrapper
 import requests
 from newsapi import NewsApiClient
 
-
 # TODO: Add tools for reddit scanner, Power BI API for data visualization, and yahoo finance API for stock data, Math API for calculations
-
-#from langsmith import LangSmith
 
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -91,7 +88,7 @@ tools = [
     Tool(
         func=get_balance_sheet,
         name="Balance_Sheet",
-        description="Gets the balance sheet of a specific company given its ticker symbol",
+        description="Gets the balance sheet of a specific company given its ticker symbol but limits the results to 2000 characters",
     ),
     
     wikipedia_tool,
