@@ -17,6 +17,7 @@ from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
 import requests
 from newsapi import NewsApiClient
+from flask import Flask, request, jsonify
 
 # TODO: Add tools for reddit scanner, Power BI API for data visualization, and yahoo finance API for stock data, Math API for calculations
 
@@ -27,6 +28,9 @@ news_api_key = os.getenv('NEWS_API_KEY')
 newsapi = NewsApiClient(news_api_key)
 
 politician_api_key = os.getenv('POLITICIAN_API_KEY')
+
+app = Flask(__name__)
+
 
 
 def get_latest_news(company):
@@ -56,62 +60,59 @@ def get_balance_sheet(company_ticker):
     return data
 
 
-
 def scan_reddit(company):
     return
 
 
 
 
-# Create the agent
-memory = MemorySaver()
-model = ChatOpenAI(model_name="gpt-3.5-turbo")
-
-
-prompt_template = PromptTemplate(
-    input_variables=["message"],
-    template="You are a world-class financial advisor who uses tools to find the best undervalued stocks that are going to make HUGE profits for your clients \
-        BASED ON YOUR CLIENTS INTERESTS provide a detailed analysis of 5 good stocks to buy today"
-)
-
-api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=100)
-wikipedia_tool = WikipediaQueryRun(api_wrapper=api_wrapper)
-
-
-tools = [
-    Tool(
-        func=get_latest_news,
-        name="Latest_News",
-        description="Gets the latest news of the day about a specific company",
-    ),
-
-    Tool(
-        func=get_balance_sheet,
-        name="Balance_Sheet",
-        description="Gets the balance sheet of a specific company given its ticker symbol but limits the results to 2000 characters",
-    ),
+@app.route('/get_response', methods=['POST'])
+def get_response():
+    user_message = request.json.get('message')
     
-    wikipedia_tool,
-    
-]
+    # Create the agent
+    memory = MemorySaver()
+    model = ChatOpenAI(model_name="gpt-3.5-turbo")
+
+    prompt_template = PromptTemplate(
+        input_variables=["message"],
+        template="You are a world-class financial advisor who uses tools to find the best undervalued stocks that are going to make HUGE profits for your clients \
+            BASED ON YOUR CLIENTS INTERESTS provide a detailed analysis of 5 good stocks to buy today"
+    )
+
+    api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=100)
+    wikipedia_tool = WikipediaQueryRun(api_wrapper=api_wrapper)
+
+    tools = [
+        Tool(
+            func=get_latest_news,
+            name="Latest_News",
+            description="Gets the latest news of the day about a specific company",
+        ),
+        Tool(
+            func=get_balance_sheet,
+            name="Balance_Sheet",
+            description="Gets the balance sheet of a specific company given its ticker symbol but limits the results to 2000 characters",
+        ),
+
+        wikipedia_tool,
+    ]
+
+    agent_executor = create_react_agent(model, tools, checkpointer=memory)
+    formatted_prompt = prompt_template.format(message=user_message)
+
+    recommendation = ""
+
+    # Use the agent
+    config = {"configurable": {"thread_id": "abc125"}}
+    for chunk in agent_executor.stream(
+        {"messages": [HumanMessage(content=formatted_prompt)]}, config
+    ):
+        if "agent" in chunk:
+            recommendation = chunk["agent"]["messages"][0].content
+
+    return jsonify({"recommendation": recommendation})
 
 
-agent_executor = create_react_agent(model, tools, checkpointer=memory)
-user_message = input("Welcome to Finance Agent. What's your prompt?: ")
-formatted_prompt = prompt_template.format(message=user_message)
-
-recommendation = ""
-
-# Use the agent
-config = {"configurable": {"thread_id": "abc125"}}
-for chunk in agent_executor.stream(
-    {"messages": [HumanMessage(content=formatted_prompt)]}, config
-):
-    if "agent" in chunk:
-        recommendation = chunk["agent"]["messages"][0].content
-    
-    print(chunk)
-    print("----")
-
-
-print(recommendation)
+if __name__ == '__main__':
+    app.run(debug=True)
