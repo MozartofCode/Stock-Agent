@@ -15,9 +15,9 @@ from langchain.prompts import PromptTemplate
 from langchain_community.tools import Tool
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
-from langchain.tools.google_search.tool import GoogleSearchResults
 import requests
 from newsapi import NewsApiClient
+from langchain.tools import LLMMathTool
 
 
 #from langsmith import LangSmith
@@ -27,11 +27,6 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 news_api_key = os.getenv('NEWS_API_KEY')
 newsapi = NewsApiClient(news_api_key)
-
-
-
-# google_api_key = "YGOOGLE_API_KEY"
-# search_engine_id = "SEARCH_ENGINE_ID"
 
 
 def get_latest_news(company):
@@ -56,20 +51,11 @@ prompt_template = PromptTemplate(
     Use all the resources necessary to provide the best answer.",
 )
 
-
-# Get latest news with an API call & Wikipedia Integration (Built in tool)
-# Google Search API
-# API request API (for yahoo api)
-
-# Initialize the Google Search tool with API credentials
-google_search_tool = GoogleSearchResults(
-    api_key=google_api_key,
-    search_engine_id=search_engine_id
-)
-
-
 api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=100)
 wikipedia_tool = WikipediaQueryRun(api_wrapper=api_wrapper)
+
+math_tool = LLMMathTool()
+
 
 tools = [
     Tool(
@@ -79,8 +65,8 @@ tools = [
     ),
     
     wikipedia_tool,
-
-    google_search_tool
+    
+    math_tool
 ]
 
 agent_executor = create_react_agent(model, tools, checkpointer=memory)
