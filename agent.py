@@ -19,6 +19,8 @@ import requests
 from newsapi import NewsApiClient
 
 
+# TODO: Add tools for reddit scanner, Power BI API for data visualization, and yahoo finance API for stock data, Math API for calculations
+
 #from langsmith import LangSmith
 
 load_dotenv()
@@ -31,17 +33,12 @@ politician_api_key = os.getenv('POLITICIAN_API_KEY')
 
 
 def get_latest_news(company):
-    
-    top_headlines = newsapi.get_top_headlines(q=company,
-                                          language='en',
-                                          country='us')
-    
+    top_headlines = newsapi.get_top_headlines(q=company, language='en', country='us')
     return extract_news_data(top_headlines)
 
+
 def extract_news_data(top_headlines):
-    # Check if the response status is 'ok' and there are articles
     if top_headlines['status'] == 'ok' and top_headlines['totalResults'] > 0:
-        # Loop through each article and extract title and description
         news_summary = []
         for article in top_headlines['articles']:
             news_item = article['description']
@@ -76,8 +73,8 @@ model = ChatOpenAI(model_name="gpt-3.5-turbo")
 
 prompt_template = PromptTemplate(
     input_variables=["message"],
-    template="You are a financial advisor. A client asks you about what stocks to invest in.\
-    Use all the resources necessary to provide the best answer.",
+    template="You are a world-class financial advisor who uses tools to find the best undervalued stocks that are going to make HUGE profits for your clients \
+        BASED ON YOUR CLIENTS INTERESTS provide a detailed analysis of 5 good stocks to buy today"
 )
 
 api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=100)
@@ -99,21 +96,17 @@ tools = [
     
     wikipedia_tool,
     
-
 ]
 
+
 agent_executor = create_react_agent(model, tools, checkpointer=memory)
-
-print("Agent created")
-
 user_message = input("Welcome to Finance Agent. What's your prompt?: ")
-
 formatted_prompt = prompt_template.format(message=user_message)
 
 recommendation = ""
 
 # Use the agent
-config = {"configurable": {"thread_id": "abc124"}}
+config = {"configurable": {"thread_id": "abc125"}}
 for chunk in agent_executor.stream(
     {"messages": [HumanMessage(content=formatted_prompt)]}, config
 ):
