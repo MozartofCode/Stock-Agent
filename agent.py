@@ -17,7 +17,6 @@ from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
 import requests
 from newsapi import NewsApiClient
-from langchain.tools import LLMMathTool
 
 
 #from langsmith import LangSmith
@@ -32,12 +31,32 @@ newsapi = NewsApiClient(news_api_key)
 def get_latest_news(company):
     
     top_headlines = newsapi.get_top_headlines(q=company,
-                                          sources='bbc-news,the-verge',
-                                          category='business',
                                           language='en',
                                           country='us')
-    return top_headlines
+    
+    return extract_news_data(top_headlines)
 
+def extract_news_data(top_headlines):
+    # Check if the response status is 'ok' and there are articles
+    if top_headlines['status'] == 'ok' and top_headlines['totalResults'] > 0:
+        # Loop through each article and extract title and description
+        news_summary = []
+        for article in top_headlines['articles']:
+            news_item = article['description']
+            news_summary.append(news_item)
+        return news_summary
+    else:
+        return "No news articles available."
+    
+
+
+def scan_reddit(company):
+    return
+
+
+
+def get_politican_stocks(company):
+    return
 
 
 # Create the agent
@@ -54,8 +73,6 @@ prompt_template = PromptTemplate(
 api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=100)
 wikipedia_tool = WikipediaQueryRun(api_wrapper=api_wrapper)
 
-math_tool = LLMMathTool()
-
 
 tools = [
     Tool(
@@ -66,7 +83,6 @@ tools = [
     
     wikipedia_tool,
     
-    math_tool
 ]
 
 agent_executor = create_react_agent(model, tools, checkpointer=memory)
