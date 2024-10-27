@@ -1,4 +1,3 @@
-// src/App.js
 import React, { useState } from 'react';
 import './App.css';
 
@@ -6,10 +5,22 @@ function App() {
   const [input, setInput] = useState('');
   const [response, setResponse] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Mock response for demonstration
-    setResponse(`You asked: "${input}". This is a mock response.`);
+    try {
+      const res = await fetch('http://localhost:5000/get_response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ question: input }),
+      });
+      const data = await res.json();
+      setResponse(data.answer);
+    } catch (error) {
+      console.error('Error:', error);
+      setResponse('An error occurred with the response.');
+    }
     setInput('');
   };
 

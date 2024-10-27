@@ -18,6 +18,7 @@ from langchain_community.utilities import WikipediaAPIWrapper
 import requests
 from newsapi import NewsApiClient
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 # TODO: Add tools for reddit scanner, Power BI API for data visualization, and yahoo finance API for stock data, Math API for calculations
 
@@ -30,7 +31,7 @@ newsapi = NewsApiClient(news_api_key)
 politician_api_key = os.getenv('POLITICIAN_API_KEY')
 
 app = Flask(__name__)
-
+CORS(app)
 
 
 def get_latest_news(company):
@@ -68,7 +69,7 @@ def scan_reddit(company):
 
 @app.route('/get_response', methods=['POST'])
 def get_response():
-    user_message = request.json.get('message')
+    user_message = request.json.get('question', '')
     
     # Create the agent
     memory = MemorySaver()
@@ -89,13 +90,13 @@ def get_response():
             name="Latest_News",
             description="Gets the latest news of the day about a specific company",
         ),
-        Tool(
-            func=get_balance_sheet,
-            name="Balance_Sheet",
-            description="Gets the balance sheet of a specific company given its ticker symbol but limits the results to 2000 characters",
-        ),
+        # Tool(
+        #     func=get_balance_sheet,
+        #     name="Balance_Sheet",
+        #     description="Gets the balance sheet of a specific company given its ticker symbol but limits the results to 2000 characters",
+        # ),
 
-        wikipedia_tool,
+        #wikipedia_tool,
     ]
 
     agent_executor = create_react_agent(model, tools, checkpointer=memory)
@@ -111,7 +112,7 @@ def get_response():
         if "agent" in chunk:
             recommendation = chunk["agent"]["messages"][0].content
 
-    return jsonify({"recommendation": recommendation})
+    return jsonify({"answer": recommendation})
 
 
 if __name__ == '__main__':
