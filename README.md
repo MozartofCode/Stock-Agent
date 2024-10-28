@@ -1,3 +1,3 @@
 # Stock-Agent
 
-This AI agent makes a stock prediction analysis using sentiment analysis (using WSJ API to get news data) and other tools
+This AI agent analyzes a given stock based on the latest news, the stock's current price and that company's wikipedia page using an AI agent
