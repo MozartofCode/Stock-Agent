@@ -1,6 +1,6 @@
 # @Author: Bertan Berker
 # @Language: Python
-#
+# This is the code for the finance agent that uses OpenAI's GPT-3.5-turbo model to provide financial advice to users
 
 # Import relevant functionality
 from langchain_core.messages import HumanMessage
@@ -22,6 +22,7 @@ from flask_cors import CORS
 import yfinance as yf
 
 
+# Load the environment variables
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
@@ -34,11 +35,17 @@ app = Flask(__name__)
 CORS(app)
 
 
+# Define the functions to get the latest news of a stock
+# :param company: The company to get the news for
+# :return: The latest news of the company
 def get_latest_news(company):
     top_headlines = newsapi.get_top_headlines(q=company, language='en', country='us')
     return extract_news_data(top_headlines)
 
 
+# Extract the news data from the API response
+# :param top_headlines: The API response from the news API
+# :return: The news summary
 def extract_news_data(top_headlines):
     if top_headlines['status'] == 'ok' and top_headlines['totalResults'] > 0:
         news_summary = []
@@ -50,7 +57,9 @@ def extract_news_data(top_headlines):
         return "No news articles available."
 
 
-
+# Get the stock price of a company
+# :param ticker_symbol: The ticker symbol of the company
+# :return: The current stock price of the company
 def get_stock_price(ticker_symbol):
     url = f"https://financialmodelingprep.com/api/v3/quote/{ticker_symbol}"
     params = {"apikey": stock_api_key}
@@ -65,7 +74,8 @@ def get_stock_price(ticker_symbol):
         return f"Failed to retrieve data for {ticker_symbol}: {data.get('error', 'Unknown error')}"
 
 
-
+# Define the route to get the response from the agent
+# :return: The response from the agent
 @app.route('/get_response', methods=['POST'])
 def get_response():
     user_message = request.json.get('question', '')
