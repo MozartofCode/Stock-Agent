@@ -58,8 +58,9 @@ def get_response():
 
     prompt_template = PromptTemplate(
         input_variables=["message"],
-        template="You are a world-class financial advisor who uses tools to find the best undervalued stocks that are going to make HUGE profits for your clients \
-            BASED ON YOUR CLIENTS INTERESTS provide a detailed analysis of 5 good stocks to buy today"
+        template="You are a world-class financial advisor who is helping a client with their investments. When a client asks you a question, \
+              you provide a 2 sentence summary of the company follow by the current stock price and your prediction next year for the stock. \
+                The client asks: {message}"
     )
 
     api_wrapper = WikipediaAPIWrapper(top_k_results=1, doc_content_chars_max=100)
