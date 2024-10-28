@@ -20,7 +20,6 @@ from newsapi import NewsApiClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# TODO: Add tools for reddit scanner, Power BI API for data visualization, and yahoo finance API for stock data, Math API for calculations
 
 load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -28,7 +27,6 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 news_api_key = os.getenv('NEWS_API_KEY')
 newsapi = NewsApiClient(news_api_key)
 
-politician_api_key = os.getenv('POLITICIAN_API_KEY')
 
 app = Flask(__name__)
 CORS(app)
@@ -48,23 +46,6 @@ def extract_news_data(top_headlines):
         return news_summary
     else:
         return "No news articles available."
-    
-
-
-def get_balance_sheet(company_ticker):
-
-    finance = f"https://financialmodelingprep.com/api/v3/balance-sheet-statement/{company_ticker}?period=annual&apikey={politician_api_key}"
-
-    response = requests.get(finance)
-    data = response.json()
-
-    return data
-
-
-def scan_reddit(company):
-    return
-
-
 
 
 @app.route('/get_response', methods=['POST'])
@@ -90,13 +71,8 @@ def get_response():
             name="Latest_News",
             description="Gets the latest news of the day about a specific company",
         ),
-        # Tool(
-        #     func=get_balance_sheet,
-        #     name="Balance_Sheet",
-        #     description="Gets the balance sheet of a specific company given its ticker symbol but limits the results to 2000 characters",
-        # ),
 
-        #wikipedia_tool,
+        wikipedia_tool,
     ]
 
     agent_executor = create_react_agent(model, tools, checkpointer=memory)
