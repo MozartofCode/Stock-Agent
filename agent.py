@@ -19,6 +19,7 @@ import requests
 from newsapi import NewsApiClient
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import yfinance as yf
 
 
 load_dotenv()
@@ -27,6 +28,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 news_api_key = os.getenv('NEWS_API_KEY')
 newsapi = NewsApiClient(news_api_key)
 
+stock_api_key = os.getenv('STOCK_API_KEY')
 
 app = Flask(__name__)
 CORS(app)
@@ -46,6 +48,22 @@ def extract_news_data(top_headlines):
         return news_summary
     else:
         return "No news articles available."
+
+
+
+def get_stock_price(ticker_symbol):
+    url = f"https://financialmodelingprep.com/api/v3/quote/{ticker_symbol}"
+    params = {"apikey": stock_api_key}
+
+    response = requests.get(url, params=params)
+    data = response.json()
+
+    if response.status_code == 200 and data:
+        current_price = data[0]['price']
+        return f"The current price of {ticker_symbol} is ${current_price}"
+    else:
+        return f"Failed to retrieve data for {ticker_symbol}: {data.get('error', 'Unknown error')}"
+
 
 
 @app.route('/get_response', methods=['POST'])
@@ -70,7 +88,13 @@ def get_response():
         Tool(
             func=get_latest_news,
             name="Latest_News",
-            description="Gets the latest news of the day about a specific company",
+            description="Gets the latest news of the day about a specific company and returns a summary of 250 words or less",
+        ),
+
+        Tool(
+            func=get_stock_price,
+            name="Current_Stock_Price",
+            description="Gets the current stock price of a company given it's ticker symbol",
         ),
 
         wikipedia_tool,
